@@ -14,19 +14,16 @@
             height: 100%;
             overflow: hidden;
             font-family: Arial, sans-serif;
-            background: #251a66;
+            background: #1b222c; /* Set the background color to #1b222c */
         }
+
         iframe {
             border: none;
             width: 100%;
             height: 100%;
-            display: none;
-            position: relative;
-            transform-origin: center;
+            display: none; /* Initially hidden */
         }
-        .iframe-animation {
-            animation: pullInFrame 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
+
         #offline-message {
             display: none;
             position: fixed;
@@ -34,8 +31,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #251a66e1;
-            color: #ffffff;
+            background-color: rgba(37, 26, 102, 0.88);
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -43,105 +40,11 @@
             text-align: center;
             z-index: 10;
         }
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #251a66;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 5;
-        }
-        .message-icon {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 30px;
-            animation: bounce 2s infinite;
-        }
-        .message-icon svg {
-            width: 100%;
-            height: 100%;
-            fill: #3498db;
-        }
-        .loading-bar-container {
-            width: 300px;
-            height: 20px;
-            background-color: #ffffff33;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .loading-bar {
-            width: 0%;
-            height: 100%;
-            background-color: #3498db;
-            border-radius: 10px;
-            animation: loading 3s ease-in-out forwards;
-        }
-        .loading-text {
-            color: white;
-            font-size: 20px;
-        }
-        @keyframes loading {
-            0% {
-                width: 0%;
-            }
-            100% {
-                width: 100%;
-            }
-        }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-20px);
-            }
-            60% {
-                transform: translateY(-10px);
-            }
-        }
-        @keyframes pullInFrame {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen">
-        <div class="message-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 2v.5l-8 5-8-5V6h16zM4 18V8.9l7.4 4.6c.2.1.4.2.6.2s.4-.1.6-.2L20 8.9V18H4z"/>
-            </svg>
-        </div>
-        <div class="loading-bar-container">
-            <div class="loading-bar"></div>
-        </div>
-        <div class="loading-text">Loading...</div>
-    </div>
-
     <!-- Offline message -->
-    <div id="offline-message" style="display: none;">
+    <div id="offline-message">
         You are offline. Please check your internet connection.
     </div>
 
@@ -151,18 +54,15 @@
     <script>
         const offlineMessage = document.getElementById('offline-message');
         const contentFrame = document.getElementById('content-frame');
-        const loadingScreen = document.getElementById('loading-screen');
-        const loadingBar = document.querySelector('.loading-bar');
 
         // Function to check online status
         function updateOnlineStatus() {
             if (navigator.onLine) {
                 offlineMessage.style.display = 'none';
-                contentFrame.style.display = 'block';
+                contentFrame.style.display = 'block'; // Show iframe when online
             } else {
                 offlineMessage.style.display = 'flex';
-                contentFrame.style.display = 'none';
-                loadingScreen.style.display = 'none';
+                contentFrame.style.display = 'none'; // Hide iframe when offline
             }
         }
 
@@ -172,25 +72,26 @@
 
         // Event listener for iframe load completion
         contentFrame.addEventListener('load', function() {
-            // Wait for loading bar animation to complete (3 seconds)
-            setTimeout(() => {
-                loadingScreen.style.animation = 'fadeOut 0.5s forwards';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    contentFrame.style.display = 'block';
-                    contentFrame.classList.add('iframe-animation');
-                }, 50);
-            }, 3000);
+            contentFrame.style.display = 'block'; // Make iframe visible after it has loaded
         });
 
         // Handle iframe loading error
         contentFrame.addEventListener('error', function() {
-            loadingScreen.style.display = 'none';
-            offlineMessage.style.display = 'flex';
+            contentFrame.style.display = 'none'; // Hide iframe if there's an error
+            offlineMessage.style.display = 'flex'; // Show offline message
         });
 
-        // Initial check
+        // Initial check for online/offline status
         updateOnlineStatus();
+
+        // Caching strategy - Register a Service Worker for caching the iframe content
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                console.log('Service Worker registered with scope:', registration.scope);
+            }).catch(function(error) {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
     </script>
 </body>
 </html>
